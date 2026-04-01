@@ -90,7 +90,12 @@ export default function App() {
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages",{
         method:"POST",
-        headers:{"Content-Type":"application/json"},
+        headers:{
+          "Content-Type":"application/json",
+          "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
         body: JSON.stringify({
           model:"claude-sonnet-4-20250514", max_tokens:1000,
           messages:[{role:"user",content:prompt}]
@@ -189,7 +194,7 @@ export default function App() {
   return (
     <div style={{
       minHeight:"100vh", background: bg,
-      fontFamily:"'Hiragino Mincho ProN','Yu Mincho',serif",
+      fontFamily:"'Hiragino Kaku Gothic ProN','Yu Gothic','Noto Sans JP',sans-serif",
       display:"flex", flexDirection:"column", alignItems:"center",
       justifyContent:"center", position:"relative", overflow:"hidden",
       transition:"background 1.5s ease",
@@ -365,7 +370,7 @@ export default function App() {
                   <p style={{color:"#bf6000",fontSize:11,fontWeight:"bold",margin:"0 0 8px",letterSpacing:".15em"}}>
                     ☀️ 今日のアファメーション
                   </p>
-                  <p style={{color:"#1a3a2a",fontSize:14,lineHeight:1.9,fontWeight:"bold",margin:0}}>
+                  <p style={{color:"#1a3a2a",fontSize:16,lineHeight:2,fontWeight:"bold",margin:0}}>
                     {todayData.affirmation}
                   </p>
                 </div>
@@ -376,7 +381,7 @@ export default function App() {
                   <p style={{color:"#0277bd",fontSize:11,fontWeight:"bold",margin:"0 0 6px",letterSpacing:".12em"}}>
                     🌙 今日の整える一言
                   </p>
-                  <p style={{color:"#01579b",fontSize:14,lineHeight:1.8,margin:0}}>{todayData.seiton}</p>
+                  <p style={{color:"#01579b",fontSize:16,lineHeight:1.8,margin:0}}>{todayData.seiton}</p>
                 </div>
 
                 {/* 開運アクション */}
@@ -385,7 +390,7 @@ export default function App() {
                   <p style={{color:"#2e7d32",fontSize:11,fontWeight:"bold",margin:"0 0 6px",letterSpacing:".12em"}}>
                     🍀 今日の開運アクション
                   </p>
-                  <p style={{color:"#1b5e20",fontSize:14,lineHeight:1.8,margin:0}}>{todayData.kaun}</p>
+                  <p style={{color:"#1b5e20",fontSize:16,lineHeight:1.8,margin:0}}>{todayData.kaun}</p>
                 </div>
 
                 {/* ボタン群 */}
