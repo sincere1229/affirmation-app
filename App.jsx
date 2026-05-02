@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 
-// ─── 定数 ───────────────────────────────────────────
 const GRADIENTS = [
   ["#fff3e0","#ffe0b2","#ffffff"],
   ["#fff8f0","#ffe5c8","#fffaf5"],
@@ -8,8 +7,6 @@ const GRADIENTS = [
   ["#fffaf5","#ffe0b2","#fff3e0"],
   ["#fff8f0","#ffecd9","#ffffff"],
 ];
-
-const PARTICLES = [];
 
 const NOTIFY_TIMES = [
   { label: "朝 6:00", value: "06:00" },
@@ -29,7 +26,6 @@ const PROFILE_FIELDS = [
   { key:"vibe",    label:"言葉の雰囲気",        placeholder:"例：やさしい／力強い／スピリチュアル" },
 ];
 
-// ─── ユーティリティ ──────────────────────────────────
 function todayKey() {
   const d = new Date();
   return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
@@ -41,12 +37,6 @@ function save(key, val) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
 }
 
-// ─── パーティクル ────────────────────────────────────
-function Particle({ emoji, style }) {
-  return <span style={{ position:"absolute", fontSize:14+Math.random()*14, pointerEvents:"none", ...style }}>{emoji}</span>;
-}
-
-// ─── メインコンポーネント ────────────────────────────
 export default function App() {
   const [screen, setScreen]       = useState("home");
   const [profile, setProfile]     = useState(() => load("aff_profile", null));
@@ -57,24 +47,9 @@ export default function App() {
   const [notifyOn, setNotifyOn]   = useState(() => load("aff_notify_on", false));
   const [loading, setLoading]     = useState(false);
   const [gIdx, setGIdx]           = useState(0);
-  const [particles, setParticles] = useState([]);
   const [shareMsg, setShareMsg]   = useState("");
-  const [tab, setTab]             = useState("today"); // today | favorites | settings
-  const canvasRef = useRef(null);
+  const [tab, setTab]             = useState("today");
 
-  // パーティクル生成
-  useEffect(() => {
-    setParticles(Array.from({length:14},(_,i)=>({
-      id:i,
-      emoji: PARTICLES[Math.floor(Math.random()*PARTICLES.length)],
-      left:`${5+Math.random()*88}%`,
-      top:`${5+Math.random()*85}%`,
-      delay:`${Math.random()*6}s`,
-      dur:`${6+Math.random()*8}s`,
-    })));
-  },[]);
-
-  // AI生成
   const generate = useCallback(async (prof) => {
     setLoading(true);
     setGIdx(Math.floor(Math.random()*GRADIENTS.length));
@@ -123,7 +98,6 @@ export default function App() {
     setScreen("main");
   },[]);
 
-  // 初回 or プロフィールなし
   const handleStart = () => {
     if (profile) {
       if (todayData) { setScreen("main"); }
@@ -141,7 +115,6 @@ export default function App() {
     generate(editProfile);
   };
 
-  // お気に入り
   const toggleFav = () => {
     if (!todayData) return;
     const updated = { ...todayData, liked: !todayData.liked };
@@ -158,7 +131,6 @@ export default function App() {
     }
   };
 
-  // シェア（Web Share API or コピー）
   const share = async () => {
     if (!todayData) return;
     const text = `🌸 今日のアファメーション\n\n${todayData.affirmation}\n\n✨ ${todayData.seiton}\n\n${todayData.kaun}\n\n#今日のアファメーション #朝のことば`;
@@ -172,7 +144,6 @@ export default function App() {
     } catch { setShareMsg("コピーできませんでした"); setTimeout(()=>setShareMsg(""),2000); }
   };
 
-  // 通知（Web Notifications API）
   const requestNotify = async () => {
     if (!("Notification" in window)) { alert("このブラウザは通知に対応していません"); return; }
     const perm = await Notification.requestPermission();
@@ -196,14 +167,10 @@ export default function App() {
       minHeight:"100vh", background: bg,
       fontFamily:"'Hiragino Kaku Gothic ProN','Yu Gothic','Noto Sans JP',sans-serif",
       display:"flex", flexDirection:"column", alignItems:"center",
-      justifyContent:"center", position:"relative", overflow:"hidden",
-      transition:"background 1.5s ease",
+      justifyContent:"flex-start", position:"relative", overflow:"hidden",
+      transition:"background 1.5s ease", paddingBottom: 40,
     }}>
       <style>{`
-        @keyframes floatY {
-          0%,100%{transform:translateY(0) rotate(-5deg);opacity:.55}
-          50%{transform:translateY(-22px) rotate(5deg);opacity:.85}
-        }
         @keyframes fadeUp {
           from{opacity:0;transform:translateY(28px)}
           to{opacity:1;transform:translateY(0)}
@@ -223,8 +190,8 @@ export default function App() {
           background:rgba(255,255,255,.85);
           backdrop-filter:blur(16px);
           border-radius:24px;
-          box-shadow:0 12px 48px rgba(0,137,123,.1),0 2px 8px rgba(38,198,218,.15);
-          border:1px solid rgba(178,235,242,.6);
+          box-shadow:0 12px 48px rgba(230,81,0,.1),0 2px 8px rgba(255,152,0,.15);
+          border:1px solid rgba(255,204,128,.6);
         }
         .btn-gold {
           background:linear-gradient(135deg,#ff9800,#ff6d00,#e65100);
@@ -262,245 +229,345 @@ export default function App() {
         .fav-card{background:rgba(255,255,255,.78);border-radius:16px;
           padding:16px;margin-bottom:12px;border:1px solid #ffcc80;
           animation:fadeUp .4s ease;}
-        .card {
-          background:rgba(255,255,255,.85);
-          backdrop-filter:blur(16px);
-          border-radius:24px;
-          box-shadow:0 12px 48px rgba(230,81,0,.1),0 2px 8px rgba(255,152,0,.15);
-          border:1px solid rgba(255,204,128,.6);
+        .teso-nudge {
+          background:linear-gradient(135deg,rgba(232,160,192,0.15),rgba(180,100,160,0.08));
+          border:1px solid rgba(232,160,192,0.35);
+          border-radius:16px;padding:20px;margin-top:16px;text-align:center;
         }
+        .line-green-btn {
+          display:inline-flex;align-items:center;gap:8px;
+          background:linear-gradient(135deg,#06c755,#04a844);
+          border:none;border-radius:10px;color:#fff;
+          font-size:14px;font-weight:700;padding:13px 24px;
+          text-decoration:none;cursor:pointer;font-family:inherit;
+          transition:all 0.2s;
+        }
+        .line-green-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(6,199,85,0.4);}
+        .sogo-block {
+          background:linear-gradient(135deg,rgba(100,80,30,0.15),rgba(60,40,10,0.1));
+          border:1px solid rgba(201,168,76,0.5);
+          border-radius:16px;padding:20px;margin-top:12px;text-align:center;
+        }
+        .sogo-btn {
+          display:inline-block;
+          background:linear-gradient(135deg,#8a6a20,#c9a84c,#8a6a20);
+          border:none;border-radius:8px;color:#0a0e1a;
+          font-weight:700;letter-spacing:1px;
+          padding:12px 28px;text-decoration:none;
+          cursor:pointer;font-family:inherit;font-size:13px;
+          transition:all 0.3s;
+        }
+        .sogo-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,168,76,0.4);}
       `}</style>
 
-      {/* パーティクルなし */}
+      {/* ★ ポータルへ戻るリンク（全画面共通） */}
+      <div style={{
+        width:"100%", maxWidth:460, padding:"12px 16px 0",
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+      }}>
+        <a href="https://twinkle-lab.jp/star" style={{
+          fontSize:11, color:"rgba(201,168,76,0.7)", textDecoration:"none",
+          letterSpacing:2, fontFamily:"Cinzel, serif",
+        }}>← 占いポータルトップ</a>
+        <div style={{fontSize:11, color:"rgba(201,168,76,0.7)", fontFamily:"Cinzel, serif", letterSpacing:1}}>
+          ✦ Twinkle Star Oracle ✦
+        </div>
+      </div>
 
-      {/* ══════ ホーム ══════ */}
-      {screen==="home" && (
-        <div style={{textAlign:"center",animation:"fadeUp .8s ease",padding:"40px 28px",maxWidth:400}}>
-          <div style={{fontSize:64,marginBottom:12,animation:"shimmer 3s ease-in-out infinite"}}>☀️</div>
-          <h1 style={{fontSize:26,fontWeight:900,color:"#bf6000",margin:"0 0 8px",
-            textShadow:"0 2px 12px rgba(255,160,0,.2)",letterSpacing:".04em"}}>
-            今日のアファメーション
-          </h1>
-          <p style={{color:"#e67e00",fontSize:14,margin:"0 0 36px",lineHeight:1.8}}>
-            あなただけの言葉で、今日を整えましょう
-          </p>
-          <div style={{display:"flex",flexDirection:"column",gap:12,alignItems:"center"}}>
-            <button className="btn-gold" onClick={handleStart}
-              style={{animation:"shimmer 2.5s ease-in-out infinite"}}>
-              🌟 今日のことばを受け取る
-            </button>
-            {profile && (
-              <button className="btn-soft" onClick={()=>{setEdit({...profile});setScreen("profile")}}>
-                ✏️ プロフィールを編集
+      {/* コンテンツ */}
+      <div style={{
+        width:"100%", display:"flex", flexDirection:"column",
+        alignItems:"center", justifyContent:"center",
+        flex:1, padding:"20px 0",
+      }}>
+
+        {/* ══ ホーム ══ */}
+        {screen==="home" && (
+          <div style={{textAlign:"center",animation:"fadeUp .8s ease",padding:"40px 28px",maxWidth:400}}>
+            <div style={{fontSize:64,marginBottom:12,animation:"shimmer 3s ease-in-out infinite"}}>☀️</div>
+            <h1 style={{fontSize:26,fontWeight:900,color:"#bf6000",margin:"0 0 8px",
+              textShadow:"0 2px 12px rgba(255,160,0,.2)",letterSpacing:".04em"}}>
+              今日のアファメーション
+            </h1>
+            <p style={{color:"#e67e00",fontSize:14,margin:"0 0 36px",lineHeight:1.8}}>
+              あなただけの言葉で、今日を整えましょう
+            </p>
+            <div style={{display:"flex",flexDirection:"column",gap:12,alignItems:"center"}}>
+              <button className="btn-gold" onClick={handleStart}
+                style={{animation:"shimmer 2.5s ease-in-out infinite"}}>
+                🌟 今日のことばを受け取る
               </button>
-            )}
-            {!profile && <p style={{color:"#e91e8c",fontSize:12}}>※ 初回はプロフィール設定があります</p>}
-          </div>
-        </div>
-      )}
-
-      {/* ══════ プロフィール設定 ══════ */}
-      {screen==="profile" && (
-        <div className="card" style={{
-          width:"90%",maxWidth:440,padding:"28px 24px",
-          animation:"popIn .5s ease",maxHeight:"90vh",overflowY:"auto"
-        }}>
-          <h2 style={{color:"#bf6000",fontSize:20,margin:"0 0 4px",textAlign:"center"}}>☀️ プロフィール設定</h2>
-          <p style={{color:"#e67e00",fontSize:12,textAlign:"center",margin:"0 0 20px"}}>
-            あなた専用のアファメーションを生成します
-          </p>
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            {PROFILE_FIELDS.map(f=>(
-              <div key={f.key}>
-                <label>{f.label}</label>
-                <input type={f.type||"text"} placeholder={f.placeholder}
-                  value={editProfile[f.key]}
-                  onChange={e=>setEdit(p=>({...p,[f.key]:e.target.value}))}/>
-              </div>
-            ))}
-          </div>
-          <div style={{display:"flex",gap:10,marginTop:20}}>
-            <button className="btn-soft" onClick={()=>setScreen("home")} style={{flex:1}}>もどる</button>
-            <button className="btn-gold" onClick={saveProfile}
-              style={{flex:2,padding:"13px 16px",fontSize:15,
-                opacity:editProfile.name.trim()?1:.5}}>
-              🌟 保存して生成
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ══════ ローディング ══════ */}
-      {loading && (
-        <div style={{textAlign:"center",animation:"fadeUp .4s ease",padding:40}}>
-          <div style={{fontSize:54,animation:"spin 2.2s linear infinite",display:"inline-block"}}>🌸</div>
-          <p style={{color:"#880e4f",fontSize:18,fontWeight:"bold",marginTop:18}}>
-            あなたへの言葉を紡いでいます…
-          </p>
-          <p style={{color:"#ad1457",fontSize:13}}>少しお待ちください✨</p>
-        </div>
-      )}
-
-      {/* ══════ メイン画面 ══════ */}
-      {screen==="main" && !loading && (
-        <div style={{width:"92%",maxWidth:460,animation:"fadeUp .7s ease"}}>
-          {/* タブ */}
-          <div style={{display:"flex",background:"rgba(255,255,255,.7)",
-            borderRadius:"16px 16px 0 0",backdropFilter:"blur(8px)",
-            borderBottom:"1px solid #f8bbd0"}}>
-            {[["today","🌸 今日"],["favorites","⭐ お気に入り"],["settings","⚙️ 設定"]].map(([key,label])=>(
-              <button key={key} className={`tab-btn${tab===key?" active":""}`} onClick={()=>setTab(key)}>
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <div className="card" style={{borderRadius:"0 0 24px 24px",padding:"24px 20px",minHeight:300}}>
-
-            {/* ── 今日タブ ── */}
-            {tab==="today" && todayData && (
-              <div>
-                <p style={{color:"#e67e00",fontSize:12,textAlign:"center",margin:"0 0 4px",letterSpacing:".1em"}}>
-                  {profile?.name}さんへ · {todayData.date}
-                </p>
-
-                {/* アファメーション */}
-                <div style={{background:"linear-gradient(135deg,rgba(255,243,224,.8),rgba(255,236,204,.7))",
-                  borderRadius:16,padding:"18px 16px",marginBottom:12,border:"1px solid #ffcc80"}}>
-                  <p style={{color:"#bf6000",fontSize:11,fontWeight:"bold",margin:"0 0 8px",letterSpacing:".15em"}}>
-                    ☀️ 今日のアファメーション
-                  </p>
-                  <p style={{color:"#1a3a2a",fontSize:16,lineHeight:2,fontWeight:"bold",margin:0}}>
-                    {todayData.affirmation}
-                  </p>
-                </div>
-
-                {/* 整える一言 */}
-                <div style={{background:"rgba(225,245,254,.7)",
-                  borderRadius:14,padding:"14px 16px",marginBottom:10,border:"1px solid #b3e5fc"}}>
-                  <p style={{color:"#0277bd",fontSize:11,fontWeight:"bold",margin:"0 0 6px",letterSpacing:".12em"}}>
-                    🌙 今日の整える一言
-                  </p>
-                  <p style={{color:"#01579b",fontSize:16,lineHeight:1.8,margin:0}}>{todayData.seiton}</p>
-                </div>
-
-                {/* 開運アクション */}
-                <div style={{background:"rgba(232,245,233,.7)",
-                  borderRadius:14,padding:"14px 16px",marginBottom:16,border:"1px solid #a5d6a7"}}>
-                  <p style={{color:"#2e7d32",fontSize:11,fontWeight:"bold",margin:"0 0 6px",letterSpacing:".12em"}}>
-                    🍀 今日の開運アクション
-                  </p>
-                  <p style={{color:"#1b5e20",fontSize:16,lineHeight:1.8,margin:0}}>{todayData.kaun}</p>
-                </div>
-
-                {/* ボタン群 */}
-                {shareMsg && (
-                  <p style={{color:"#c2185b",fontSize:13,textAlign:"center",margin:"0 0 10px",
-                    animation:"fadeUp .3s ease"}}>{shareMsg}</p>
-                )}
-                <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                  <button className="btn-soft" onClick={toggleFav}
-                    style={{flex:1,fontSize:13,padding:"10px 8px",
-                      background: todayData.liked?"#fff3e0":"rgba(255,255,255,.88)",
-                      color: todayData.liked?"#e65100":"#e65100"}}>
-                    {todayData.liked?"⭐ 保存済み":"⭐ お気に入り"}
-                  </button>
-                  <button className="btn-soft" onClick={share}
-                    style={{flex:1,fontSize:13,padding:"10px 8px"}}>
-                    📸 シェア
-                  </button>
-                  <button className="btn-soft" onClick={()=>generate(profile)}
-                    style={{flex:1,fontSize:13,padding:"10px 8px"}}>
-                    🔄 再生成
-                  </button>
-                </div>
-
-                <button className="btn-soft" onClick={()=>setScreen("home")}
-                  style={{width:"100%",marginTop:8,fontSize:12,padding:"9px"}}>
-                  🏠 ホームへ
+              {profile && (
+                <button className="btn-soft" onClick={()=>{setEdit({...profile});setScreen("profile")}}>
+                  ✏️ プロフィールを編集
                 </button>
+              )}
+              {!profile && <p style={{color:"#e91e8c",fontSize:12}}>※ 初回はプロフィール設定があります</p>}
+            </div>
+
+            {/* ★ 手相ナッジ */}
+            <div className="teso-nudge" style={{maxWidth:380,margin:"24px auto 0"}}>
+              <div style={{fontSize:14,color:"#5a3a5a",fontWeight:600,marginBottom:8,lineHeight:1.7}}>
+                🤲 より詳しく自分を知りたい方へ
               </div>
-            )}
-
-            {/* ── お気に入りタブ ── */}
-            {tab==="favorites" && (
-              <div>
-                <h3 style={{color:"#bf6000",fontSize:16,margin:"0 0 14px",textAlign:"center"}}>
-                  ⭐ お気に入りのことば
-                </h3>
-                {favorites.length===0 ? (
-                  <p style={{color:"#e67e00",textAlign:"center",fontSize:14,padding:20}}>
-                    まだ保存されていません☀️<br/>
-                    気に入ったことばに⭐を押してね
-                  </p>
-                ) : favorites.map((f,i)=>(
-                  <div key={i} className="fav-card">
-                    <p style={{color:"#e67e00",fontSize:11,margin:"0 0 6px"}}>{f.date}</p>
-                    <p style={{color:"#1a3a2a",fontSize:14,lineHeight:1.8,margin:"0 0 8px",fontWeight:"bold"}}>
-                      {f.affirmation}
-                    </p>
-                    <p style={{color:"#01579b",fontSize:12,lineHeight:1.7,margin:"0 0 4px"}}>{f.seiton}</p>
-                    <p style={{color:"#1b5e20",fontSize:12,lineHeight:1.7,margin:0}}>{f.kaun}</p>
-                  </div>
-                ))}
+              <div style={{fontSize:12,color:"rgba(90,58,90,0.7)",lineHeight:1.9,marginBottom:14}}>
+                無料手相診断では、左手と右手から<br/>
+                本来の自分と今の状態を読み解きます。
               </div>
-            )}
+              <a href="https://lin.ee/XHDFrA8" className="line-green-btn" target="_blank" rel="noopener">
+                💬 LINEで無料手相診断を受ける
+              </a>
+            </div>
 
-            {/* ── 設定タブ ── */}
-            {tab==="settings" && (
-              <div>
-                <h3 style={{color:"#bf6000",fontSize:16,margin:"0 0 18px",textAlign:"center"}}>⚙️ 設定</h3>
+            {/* ★ AI総合鑑定 */}
+            <div className="sogo-block" style={{maxWidth:380,margin:"12px auto 0"}}>
+              <div style={{fontFamily:"Cinzel, serif",fontSize:10,color:"#c9a84c",letterSpacing:3,marginBottom:8}}>
+                ✦ Premium · AI完全解析 ✦
+              </div>
+              <div style={{fontSize:14,color:"#4a3a10",fontWeight:600,marginBottom:6}}>
+                AI総合鑑定（手相＋複数占術）
+              </div>
+              <div style={{fontSize:11,color:"rgba(74,58,16,0.6)",marginBottom:10,lineHeight:1.7}}>
+                手相・タロット・数秘術・ホロスコープで<br/>恋愛・仕事・金運を総合的に読み解きます
+              </div>
+              <div style={{fontSize:11,color:"rgba(74,58,16,0.4)",textDecoration:"line-through",marginBottom:2}}>
+                通常¥4,980相当
+              </div>
+              <div style={{fontFamily:"Cinzel, serif",fontSize:22,color:"#c9a84c",marginBottom:4}}>¥3,980</div>
+              <div style={{fontSize:10,color:"rgba(74,58,16,0.5)",marginBottom:12}}>
+                鑑定結果はLINEでお届け · PDF送付
+              </div>
+              <a href="https://twinkle-lab.jp/star/sogo" className="sogo-btn" target="_blank" rel="noopener">
+                ✦ AI総合鑑定を申し込む ✦
+              </a>
+            </div>
+          </div>
+        )}
 
-                {/* 通知 */}
-                <div style={{marginBottom:20}}>
-                  <label style={{fontSize:14,marginBottom:10,display:"block"}}>
-                    🔔 通知時間を選ぶ
-                  </label>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:12}}>
-                    {NOTIFY_TIMES.map(t=>(
-                      <button key={t.value}
-                        onClick={()=>{setNotify(t.value);save("aff_notify",t.value)}}
-                        style={{
-                          padding:"8px 14px",borderRadius:20,border:"1.5px solid",fontSize:13,
-                          cursor:"pointer",fontFamily:"inherit",
-                          background: notifyTime===t.value?"#ff9800":"rgba(255,255,255,.85)",
-                          color: notifyTime===t.value?"#fff":"#e65100",
-                          borderColor: notifyTime===t.value?"#ff9800":"#ffcc80",
-                        }}>
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-                  <button className="btn-gold" onClick={requestNotify}
-                    style={{width:"100%",fontSize:14,padding:"12px"}}>
-                    {notifyOn?"✅ 通知設定済み（再設定）":"🔔 通知をオンにする"}
-                  </button>
-                  <p style={{color:"#9e9e9e",fontSize:11,marginTop:6,textAlign:"center"}}>
-                    ※ブラウザが開いている時のみ通知されます
-                  </p>
+        {/* ══ プロフィール設定 ══ */}
+        {screen==="profile" && (
+          <div className="card" style={{
+            width:"90%",maxWidth:440,padding:"28px 24px",
+            animation:"popIn .5s ease",maxHeight:"90vh",overflowY:"auto"
+          }}>
+            <h2 style={{color:"#bf6000",fontSize:20,margin:"0 0 4px",textAlign:"center"}}>☀️ プロフィール設定</h2>
+            <p style={{color:"#e67e00",fontSize:12,textAlign:"center",margin:"0 0 20px"}}>
+              あなた専用のアファメーションを生成します
+            </p>
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              {PROFILE_FIELDS.map(f=>(
+                <div key={f.key}>
+                  <label>{f.label}</label>
+                  <input type={f.type||"text"} placeholder={f.placeholder}
+                    value={editProfile[f.key]}
+                    onChange={e=>setEdit(p=>({...p,[f.key]:e.target.value}))}/>
                 </div>
+              ))}
+            </div>
+            <div style={{display:"flex",gap:10,marginTop:20}}>
+              <button className="btn-soft" onClick={()=>setScreen("home")} style={{flex:1}}>もどる</button>
+              <button className="btn-gold" onClick={saveProfile}
+                style={{flex:2,padding:"13px 16px",fontSize:15,
+                  opacity:editProfile.name.trim()?1:.5}}>
+                🌟 保存して生成
+              </button>
+            </div>
+          </div>
+        )}
 
-                <div style={{borderTop:"1px solid #f8bbd0",paddingTop:16}}>
-                  <label style={{fontSize:14,marginBottom:10,display:"block"}}>👤 プロフィール</label>
-                  {profile && (
-                    <div style={{background:"rgba(255,243,224,.5)",borderRadius:12,padding:"12px 14px",marginBottom:12}}>
-                      {PROFILE_FIELDS.map(f=>(
-                        <p key={f.key} style={{margin:"3px 0",fontSize:13,color:"#4a4a4a"}}>
-                          <b style={{color:"#e65100"}}>{f.label}：</b>{profile[f.key]||"未設定"}
-                        </p>
+        {/* ══ ローディング ══ */}
+        {loading && (
+          <div style={{textAlign:"center",animation:"fadeUp .4s ease",padding:40}}>
+            <div style={{fontSize:54,animation:"spin 2.2s linear infinite",display:"inline-block"}}>🌸</div>
+            <p style={{color:"#880e4f",fontSize:18,fontWeight:"bold",marginTop:18}}>
+              あなたへの言葉を紡いでいます…
+            </p>
+            <p style={{color:"#ad1457",fontSize:13}}>少しお待ちください✨</p>
+          </div>
+        )}
+
+        {/* ══ メイン画面 ══ */}
+        {screen==="main" && !loading && (
+          <div style={{width:"92%",maxWidth:460,animation:"fadeUp .7s ease"}}>
+            {/* タブ */}
+            <div style={{display:"flex",background:"rgba(255,255,255,.7)",
+              borderRadius:"16px 16px 0 0",backdropFilter:"blur(8px)",
+              borderBottom:"1px solid #f8bbd0"}}>
+              {[["today","🌸 今日"],["favorites","⭐ お気に入り"],["settings","⚙️ 設定"]].map(([key,label])=>(
+                <button key={key} className={`tab-btn${tab===key?" active":""}`} onClick={()=>setTab(key)}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="card" style={{borderRadius:"0 0 24px 24px",padding:"24px 20px",minHeight:300}}>
+
+              {/* ── 今日タブ ── */}
+              {tab==="today" && todayData && (
+                <div>
+                  <p style={{color:"#e67e00",fontSize:12,textAlign:"center",margin:"0 0 4px",letterSpacing:".1em"}}>
+                    {profile?.name}さんへ · {todayData.date}
+                  </p>
+
+                  <div style={{background:"linear-gradient(135deg,rgba(255,243,224,.8),rgba(255,236,204,.7))",
+                    borderRadius:16,padding:"18px 16px",marginBottom:12,border:"1px solid #ffcc80"}}>
+                    <p style={{color:"#bf6000",fontSize:11,fontWeight:"bold",margin:"0 0 8px",letterSpacing:".15em"}}>
+                      ☀️ 今日のアファメーション
+                    </p>
+                    <p style={{color:"#1a3a2a",fontSize:16,lineHeight:2,fontWeight:"bold",margin:0}}>
+                      {todayData.affirmation}
+                    </p>
+                  </div>
+
+                  <div style={{background:"rgba(225,245,254,.7)",
+                    borderRadius:14,padding:"14px 16px",marginBottom:10,border:"1px solid #b3e5fc"}}>
+                    <p style={{color:"#0277bd",fontSize:11,fontWeight:"bold",margin:"0 0 6px",letterSpacing:".12em"}}>
+                      🌙 今日の整える一言
+                    </p>
+                    <p style={{color:"#01579b",fontSize:16,lineHeight:1.8,margin:0}}>{todayData.seiton}</p>
+                  </div>
+
+                  <div style={{background:"rgba(232,245,233,.7)",
+                    borderRadius:14,padding:"14px 16px",marginBottom:16,border:"1px solid #a5d6a7"}}>
+                    <p style={{color:"#2e7d32",fontSize:11,fontWeight:"bold",margin:"0 0 6px",letterSpacing:".12em"}}>
+                      🍀 今日の開運アクション
+                    </p>
+                    <p style={{color:"#1b5e20",fontSize:16,lineHeight:1.8,margin:0}}>{todayData.kaun}</p>
+                  </div>
+
+                  {shareMsg && (
+                    <p style={{color:"#c2185b",fontSize:13,textAlign:"center",margin:"0 0 10px",
+                      animation:"fadeUp .3s ease"}}>{shareMsg}</p>
+                  )}
+                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                    <button className="btn-soft" onClick={toggleFav}
+                      style={{flex:1,fontSize:13,padding:"10px 8px",
+                        background: todayData.liked?"#fff3e0":"rgba(255,255,255,.88)"}}>
+                      {todayData.liked?"⭐ 保存済み":"⭐ お気に入り"}
+                    </button>
+                    <button className="btn-soft" onClick={share}
+                      style={{flex:1,fontSize:13,padding:"10px 8px"}}>
+                      📸 シェア
+                    </button>
+                    <button className="btn-soft" onClick={()=>generate(profile)}
+                      style={{flex:1,fontSize:13,padding:"10px 8px"}}>
+                      🔄 再生成
+                    </button>
+                  </div>
+
+                  <button className="btn-soft" onClick={()=>setScreen("home")}
+                    style={{width:"100%",marginTop:8,fontSize:12,padding:"9px"}}>
+                    🏠 ホームへ
+                  </button>
+
+                  {/* ★ 手相ナッジ */}
+                  <div className="teso-nudge" style={{marginTop:16}}>
+                    <div style={{fontSize:13,color:"#5a3a5a",fontWeight:600,marginBottom:8,lineHeight:1.7}}>
+                      🤲 より詳しく自分を知りたい方へ
+                    </div>
+                    <div style={{fontSize:11,color:"rgba(90,58,90,0.7)",lineHeight:1.9,marginBottom:14}}>
+                      無料手相診断では、左手と右手から<br/>
+                      本来の自分と今の状態を読み解きます。
+                    </div>
+                    <a href="https://lin.ee/XHDFrA8" className="line-green-btn" target="_blank" rel="noopener"
+                      style={{fontSize:13,padding:"11px 20px"}}>
+                      💬 LINEで無料手相診断を受ける
+                    </a>
+                  </div>
+
+                  {/* ★ AI総合鑑定 */}
+                  <div className="sogo-block" style={{marginTop:12}}>
+                    <div style={{fontFamily:"Cinzel, serif",fontSize:10,color:"#c9a84c",letterSpacing:3,marginBottom:6}}>
+                      ✦ Premium · AI完全解析 ✦
+                    </div>
+                    <div style={{fontSize:13,color:"#4a3a10",fontWeight:600,marginBottom:6}}>
+                      AI総合鑑定（手相＋複数占術）
+                    </div>
+                    <div style={{fontSize:11,color:"rgba(74,58,16,0.4)",textDecoration:"line-through",marginBottom:2}}>通常¥4,980相当</div>
+                    <div style={{fontFamily:"Cinzel, serif",fontSize:20,color:"#c9a84c",marginBottom:4}}>¥3,980</div>
+                    <div style={{fontSize:10,color:"rgba(74,58,16,0.5)",marginBottom:10}}>鑑定結果はLINEでお届け · PDF送付</div>
+                    <a href="https://twinkle-lab.jp/star/sogo" className="sogo-btn" target="_blank" rel="noopener">
+                      ✦ AI総合鑑定を申し込む ✦
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* ── お気に入りタブ ── */}
+              {tab==="favorites" && (
+                <div>
+                  <h3 style={{color:"#bf6000",fontSize:16,margin:"0 0 14px",textAlign:"center"}}>
+                    ⭐ お気に入りのことば
+                  </h3>
+                  {favorites.length===0 ? (
+                    <p style={{color:"#e67e00",textAlign:"center",fontSize:14,padding:20}}>
+                      まだ保存されていません☀️<br/>
+                      気に入ったことばに⭐を押してね
+                    </p>
+                  ) : favorites.map((f,i)=>(
+                    <div key={i} className="fav-card">
+                      <p style={{color:"#e67e00",fontSize:11,margin:"0 0 6px"}}>{f.date}</p>
+                      <p style={{color:"#1a3a2a",fontSize:14,lineHeight:1.8,margin:"0 0 8px",fontWeight:"bold"}}>
+                        {f.affirmation}
+                      </p>
+                      <p style={{color:"#01579b",fontSize:12,lineHeight:1.7,margin:"0 0 4px"}}>{f.seiton}</p>
+                      <p style={{color:"#1b5e20",fontSize:12,lineHeight:1.7,margin:0}}>{f.kaun}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* ── 設定タブ ── */}
+              {tab==="settings" && (
+                <div>
+                  <h3 style={{color:"#bf6000",fontSize:16,margin:"0 0 18px",textAlign:"center"}}>⚙️ 設定</h3>
+                  <div style={{marginBottom:20}}>
+                    <label style={{fontSize:14,marginBottom:10,display:"block"}}>🔔 通知時間を選ぶ</label>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:12}}>
+                      {NOTIFY_TIMES.map(t=>(
+                        <button key={t.value}
+                          onClick={()=>{setNotify(t.value);save("aff_notify",t.value)}}
+                          style={{
+                            padding:"8px 14px",borderRadius:20,border:"1.5px solid",fontSize:13,
+                            cursor:"pointer",fontFamily:"inherit",
+                            background: notifyTime===t.value?"#ff9800":"rgba(255,255,255,.85)",
+                            color: notifyTime===t.value?"#fff":"#e65100",
+                            borderColor: notifyTime===t.value?"#ff9800":"#ffcc80",
+                          }}>
+                          {t.label}
+                        </button>
                       ))}
                     </div>
-                  )}
-                  <button className="btn-soft" style={{width:"100%"}}
-                    onClick={()=>{setEdit(profile||{name:"",age:"",goal:"",worry:"",theme:"",vibe:""});setScreen("profile")}}>
-                    ✏️ プロフィールを編集する
-                  </button>
+                    <button className="btn-gold" onClick={requestNotify}
+                      style={{width:"100%",fontSize:14,padding:"12px"}}>
+                      {notifyOn?"✅ 通知設定済み（再設定）":"🔔 通知をオンにする"}
+                    </button>
+                    <p style={{color:"#9e9e9e",fontSize:11,marginTop:6,textAlign:"center"}}>
+                      ※ブラウザが開いている時のみ通知されます
+                    </p>
+                  </div>
+                  <div style={{borderTop:"1px solid #f8bbd0",paddingTop:16}}>
+                    <label style={{fontSize:14,marginBottom:10,display:"block"}}>👤 プロフィール</label>
+                    {profile && (
+                      <div style={{background:"rgba(255,243,224,.5)",borderRadius:12,padding:"12px 14px",marginBottom:12}}>
+                        {PROFILE_FIELDS.map(f=>(
+                          <p key={f.key} style={{margin:"3px 0",fontSize:13,color:"#4a4a4a"}}>
+                            <b style={{color:"#e65100"}}>{f.label}：</b>{profile[f.key]||"未設定"}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                    <button className="btn-soft" style={{width:"100%"}}
+                      onClick={()=>{setEdit(profile||{name:"",age:"",goal:"",worry:"",theme:"",vibe:""});setScreen("profile")}}>
+                      ✏️ プロフィールを編集する
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
