@@ -131,29 +131,46 @@ export default function App() {
     }
   };
 
-  const share = async () => {
-    if (!todayData) return;
-    const text = `🌸 今日のアファメーション\n\n${todayData.affirmation}\n\n✨ ${todayData.seiton}\n\n${todayData.kaun}\n\n#今日のアファメーション #朝のことば`;
-    if (navigator.share) {
-      try { await navigator.share({ text }); return; } catch {}
-    }
-    try {
-      await navigator.clipboard.writeText(text);
-      setShareMsg("コピーしました！SNSに貼り付けてシェアしてね🌸");
-      setTimeout(()=>setShareMsg(""),3000);
-    } catch { setShareMsg("コピーできませんでした"); setTimeout(()=>setShareMsg(""),2000); }
+  // ★ シェアテキスト生成
+  const getShareText = () => {
+    if (!todayData) return "";
+    return `🌸 今日のアファメーション\n\n${todayData.affirmation}\n\n✨ ${todayData.seiton}\n\n${todayData.kaun}\n\n#今日のアファメーション #朝のことば`;
   };
 
-  const requestNotify = async () => {
-    if (!("Notification" in window)) { alert("このブラウザは通知に対応していません"); return; }
-    const perm = await Notification.requestPermission();
-    if (perm === "granted") {
-      setNotifyOn(true); save("aff_notify_on", true);
-      save("aff_notify", notifyTime);
-      new Notification("🌸 アファメーション通知設定完了！",{
-        body:`毎日${notifyTime}にお知らせします（※ブラウザが開いている時のみ）`
-      });
-    } else { alert("通知が許可されませんでした"); }
+  // ★ X シェア
+  const shareX = () => {
+    const text = getShareText();
+    window.open("https://twitter.com/intent/tweet?text=" + encodeURIComponent(text), "_blank");
+  };
+
+  // ★ LINE シェア
+  const shareLine = () => {
+    const text = getShareText();
+    window.open("https://social-plugins.line.me/lineit/share?text=" + encodeURIComponent(text), "_blank");
+  };
+
+  // ★ Instagram コピー
+  const shareInsta = async () => {
+    const text = getShareText();
+    try {
+      await navigator.clipboard.writeText(text);
+      setShareMsg("📋 コピーしました！Instagramに投稿してね♪");
+    } catch {
+      setShareMsg("Instagramに投稿してね♪");
+    }
+    setTimeout(()=>setShareMsg(""), 3000);
+  };
+
+  // ★ TikTok コピー
+  const shareTikTok = async () => {
+    const text = getShareText();
+    try {
+      await navigator.clipboard.writeText(text);
+      setShareMsg("📋 コピーしました！TikTokに投稿してね♪");
+    } catch {
+      setShareMsg("TikTokに投稿してね♪");
+    }
+    setTimeout(()=>setShareMsg(""), 3000);
   };
 
   const g = GRADIENTS[gIdx];
@@ -230,19 +247,19 @@ export default function App() {
           padding:16px;margin-bottom:12px;border:1px solid #ffcc80;
           animation:fadeUp .4s ease;}
         .teso-nudge {
-          background:linear-gradient(135deg,rgba(232,160,192,0.15),rgba(180,100,160,0.08));
-          border:1px solid rgba(232,160,192,0.35);
+          background:linear-gradient(135deg,rgba(196,168,240,0.15),rgba(155,127,212,0.08));
+          border:1px solid rgba(155,127,212,0.3);
           border-radius:16px;padding:20px;margin-top:16px;text-align:center;
         }
-        .line-green-btn {
+        .purple-btn {
           display:inline-flex;align-items:center;gap:8px;
-          background:linear-gradient(135deg,#06c755,#04a844);
+          background:linear-gradient(135deg,#c4a8f0,#9b7fd4);
           border:none;border-radius:10px;color:#fff;
-          font-size:14px;font-weight:700;padding:13px 24px;
+          font-size:13px;font-weight:700;padding:11px 20px;
           text-decoration:none;cursor:pointer;font-family:inherit;
           transition:all 0.2s;
         }
-        .line-green-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(6,199,85,0.4);}
+        .purple-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(155,127,212,0.4);}
         .sogo-block {
           background:linear-gradient(135deg,rgba(100,80,30,0.15),rgba(60,40,10,0.1));
           border:1px solid rgba(201,168,76,0.5);
@@ -258,9 +275,21 @@ export default function App() {
           transition:all 0.3s;
         }
         .sogo-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,168,76,0.4);}
+        /* ★ シェアボタン */
+        .share-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; }
+        .share-sns-btn {
+          flex:1; min-width:60px; display:inline-flex; align-items:center; justify-content:center;
+          gap:4px; border:none; border-radius:10px; font-size:11px; font-weight:700;
+          padding:9px 6px; cursor:pointer; transition:all 0.2s; font-family:inherit;
+        }
+        .share-sns-btn:hover{transform:translateY(-1px);opacity:0.9;}
+        .btn-x{background:#000;color:#fff;}
+        .btn-line{background:#06c755;color:#fff;}
+        .btn-insta{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;}
+        .btn-tiktok{background:#010101;color:#fff;}
       `}</style>
 
-      {/* ★ ポータルへ戻るリンク（全画面共通） */}
+      {/* ★ ポータルへ戻るリンク */}
       <div style={{
         width:"100%", maxWidth:460, padding:"12px 16px 0",
         display:"flex", alignItems:"center", justifyContent:"space-between",
@@ -274,7 +303,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* コンテンツ */}
       <div style={{
         width:"100%", display:"flex", flexDirection:"column",
         alignItems:"center", justifyContent:"center",
@@ -305,17 +333,17 @@ export default function App() {
               {!profile && <p style={{color:"#e91e8c",fontSize:12}}>※ 初回はプロフィール設定があります</p>}
             </div>
 
-            {/* ★ 手相ナッジ */}
+            {/* ★ 手相ナッジ（紫ボタン） */}
             <div className="teso-nudge" style={{maxWidth:380,margin:"24px auto 0"}}>
-              <div style={{fontSize:14,color:"#5a3a5a",fontWeight:600,marginBottom:8,lineHeight:1.7}}>
+              <div style={{fontSize:14,color:"#5a3a7a",fontWeight:600,marginBottom:8,lineHeight:1.7}}>
                 🤲 より詳しく自分を知りたい方へ
               </div>
-              <div style={{fontSize:12,color:"rgba(90,58,90,0.7)",lineHeight:1.9,marginBottom:14}}>
+              <div style={{fontSize:12,color:"rgba(90,58,120,0.7)",lineHeight:1.9,marginBottom:14}}>
                 無料手相診断では、左手と右手から<br/>
                 本来の自分と今の状態を読み解きます。
               </div>
-              <a href="https://lin.ee/XHDFrA8" className="line-green-btn" target="_blank" rel="noopener">
-                💬 LINEで無料手相診断を受ける
+              <a href="https://twinkle-lab.jp/star/tesou-free" className="purple-btn" target="_blank" rel="noopener">
+                🤲 無料手相診断を受ける
               </a>
             </div>
 
@@ -335,7 +363,7 @@ export default function App() {
               </div>
               <div style={{fontFamily:"Cinzel, serif",fontSize:22,color:"#c9a84c",marginBottom:4}}>¥3,980</div>
               <div style={{fontSize:10,color:"rgba(74,58,16,0.5)",marginBottom:12}}>
-                鑑定結果はLINEでお届け · PDF送付
+                鑑定結果はPDFでお届け
               </div>
               <a href="https://twinkle-lab.jp/star/sogo" className="sogo-btn" target="_blank" rel="noopener">
                 ✦ AI総合鑑定を申し込む ✦
@@ -439,15 +467,28 @@ export default function App() {
                     <p style={{color:"#c2185b",fontSize:13,textAlign:"center",margin:"0 0 10px",
                       animation:"fadeUp .3s ease"}}>{shareMsg}</p>
                   )}
+
+                  {/* ★ シェアボタン（X・LINE・Instagram・TikTok） */}
+                  <div className="share-row">
+                    <button className="share-sns-btn btn-x" onClick={shareX}>
+                      𝕏 X
+                    </button>
+                    <button className="share-sns-btn btn-line" onClick={shareLine}>
+                      💬 LINE
+                    </button>
+                    <button className="share-sns-btn btn-insta" onClick={shareInsta}>
+                      📷 Insta
+                    </button>
+                    <button className="share-sns-btn btn-tiktok" onClick={shareTikTok}>
+                      🎵 TikTok
+                    </button>
+                  </div>
+
                   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                     <button className="btn-soft" onClick={toggleFav}
                       style={{flex:1,fontSize:13,padding:"10px 8px",
                         background: todayData.liked?"#fff3e0":"rgba(255,255,255,.88)"}}>
                       {todayData.liked?"⭐ 保存済み":"⭐ お気に入り"}
-                    </button>
-                    <button className="btn-soft" onClick={share}
-                      style={{flex:1,fontSize:13,padding:"10px 8px"}}>
-                      📸 シェア
                     </button>
                     <button className="btn-soft" onClick={()=>generate(profile)}
                       style={{flex:1,fontSize:13,padding:"10px 8px"}}>
@@ -460,18 +501,17 @@ export default function App() {
                     🏠 ホームへ
                   </button>
 
-                  {/* ★ 手相ナッジ */}
+                  {/* ★ 手相ナッジ（紫ボタン） */}
                   <div className="teso-nudge" style={{marginTop:16}}>
-                    <div style={{fontSize:13,color:"#5a3a5a",fontWeight:600,marginBottom:8,lineHeight:1.7}}>
+                    <div style={{fontSize:13,color:"#5a3a7a",fontWeight:600,marginBottom:8,lineHeight:1.7}}>
                       🤲 より詳しく自分を知りたい方へ
                     </div>
-                    <div style={{fontSize:11,color:"rgba(90,58,90,0.7)",lineHeight:1.9,marginBottom:14}}>
+                    <div style={{fontSize:11,color:"rgba(90,58,120,0.7)",lineHeight:1.9,marginBottom:14}}>
                       無料手相診断では、左手と右手から<br/>
                       本来の自分と今の状態を読み解きます。
                     </div>
-                    <a href="https://lin.ee/XHDFrA8" className="line-green-btn" target="_blank" rel="noopener"
-                      style={{fontSize:13,padding:"11px 20px"}}>
-                      💬 LINEで無料手相診断を受ける
+                    <a href="https://twinkle-lab.jp/star/tesou-free" className="purple-btn" target="_blank" rel="noopener">
+                      🤲 無料手相診断を受ける
                     </a>
                   </div>
 
@@ -485,7 +525,7 @@ export default function App() {
                     </div>
                     <div style={{fontSize:11,color:"rgba(74,58,16,0.4)",textDecoration:"line-through",marginBottom:2}}>通常¥4,980相当</div>
                     <div style={{fontFamily:"Cinzel, serif",fontSize:20,color:"#c9a84c",marginBottom:4}}>¥3,980</div>
-                    <div style={{fontSize:10,color:"rgba(74,58,16,0.5)",marginBottom:10}}>鑑定結果はLINEでお届け · PDF送付</div>
+                    <div style={{fontSize:10,color:"rgba(74,58,16,0.5)",marginBottom:10}}>鑑定結果はPDFでお届け</div>
                     <a href="https://twinkle-lab.jp/star/sogo" className="sogo-btn" target="_blank" rel="noopener">
                       ✦ AI総合鑑定を申し込む ✦
                     </a>
@@ -538,8 +578,17 @@ export default function App() {
                         </button>
                       ))}
                     </div>
-                    <button className="btn-gold" onClick={requestNotify}
-                      style={{width:"100%",fontSize:14,padding:"12px"}}>
+                    <button className="btn-gold" onClick={async()=>{
+                      if (!("Notification" in window)) { alert("このブラウザは通知に対応していません"); return; }
+                      const perm = await Notification.requestPermission();
+                      if (perm === "granted") {
+                        setNotifyOn(true); save("aff_notify_on", true);
+                        save("aff_notify", notifyTime);
+                        new Notification("🌸 アファメーション通知設定完了！",{
+                          body:`毎日${notifyTime}にお知らせします（※ブラウザが開いている時のみ）`
+                        });
+                      } else { alert("通知が許可されませんでした"); }
+                    }} style={{width:"100%",fontSize:14,padding:"12px"}}>
                       {notifyOn?"✅ 通知設定済み（再設定）":"🔔 通知をオンにする"}
                     </button>
                     <p style={{color:"#9e9e9e",fontSize:11,marginTop:6,textAlign:"center"}}>
